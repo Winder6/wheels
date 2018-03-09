@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>Fullpage</title>
+<style>
+    body {
+        margin: 0;
+        color: #0F0E0D;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .page {
+        transition: all 1000ms ease;
+    }
+
+    section {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 20vh;
+    }
+
+    section:nth-child(1) {
+        background: #F1AF22;
+    }
+
+    section:nth-child(2) {
+        background: #356ADA;
+    }
+
+    section:nth-child(3) {
+        background: #D82220;
+    }
+
+    section:nth-child(4) {
+        background: #08AA37;
+    }
+</style>
+<div class="page">
+    <section>
+        <div class="circle">1</div>
+    </section>
+    <section>
+        <div class="circle">2</div>
+    </section>
+    <section>
+        <div class="circle">3</div>
+    </section>
+    <section>
+        <div class="circle">4</div>
+    </section>
+</div>
+
+<script>
+
+    class FullPage {
+        constructor(options) {
+            let defaultOptions = {
+                container: '',
+                duration: 1000
+            }
+            this.options = Object.assign({}, defaultOptions, options)
+            this.sections = this.options.container.querySelectorAll('section')
+            this.curIndex = 0
+            this.targetIndex = null
+            this.offsetTop = null
+            this.noScroll = true
+            this.scrollDown = true
+            this.windowHeight = document.documentElement.clientHeight
+            this.checkOptions().bindEvents()
+        }
+
+        checkOptions() {
+            if (!this.options.container) {
+                throw new Error('container is required')
+            }
+            return this
+        }
+
+        bindEvents() {
+            this.options.container.addEventListener('wheel', (e) => {
+                e.preventDefault()
+                if (this.noScroll) {
+                    let targetIndex
+                    if (e.deltaY > 0) {
+                        targetIndex = this.curIndex + 1
+                        this.scrollDown = true
+                    } else {
+                        targetIndex = this.curIndex - 1
+                        this.scrollDown = false
+                    }
+                    if (targetIndex < 0 || targetIndex >= this.sections.length) return
+                    this.toSection(targetIndex)
+                }
+            })
+        }
+
+        toSection(targetIndex) {
+            this.targetIndex = targetIndex
+            this.startScroll().then(() => this.curIndex = targetIndex)
+        }
+
+        startScroll() {
+            return new Promise((resolve) => {
+                this.noScroll = false
+                this.options.container.style.transform = `translate3d(0,-${25 * (this.targetIndex)}%,0)`
+                const that = this
+                this.options.container.addEventListener('transitionend', function callback() {
+                    this.removeEventListener('transitionend', callback)
+                    that.noScroll = true
+                    resolve()
+                })
+            })
+        }
+    }
+</script>
+<script>
+    new FullPage({
+        container: document.querySelector('body > .page'),
+    })
+
+</script>
+
+
+</html>

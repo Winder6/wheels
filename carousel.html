@@ -32,7 +32,7 @@
             opacity: 1;
         }
 
-        .slider-list__indicates {
+        .slider-indicates {
             position: relative;
             display: table;
             background-color: rgba(255, 255, 255, 0.5);
@@ -42,8 +42,8 @@
             margin: auto;
         }
 
-        .slider-list__indicates-item,
-        .slider-list__indicates-item--selected {
+        .slider-indicates__item,
+        .slider-indicates__item--selected {
             display: inline-block;
             width: 15px;
             height: 15px;
@@ -53,11 +53,11 @@
             cursor: pointer;
         }
 
-        .slider-list__indicates-item--selected {
+        .slider-indicates__item--selected {
             background-color: red;
         }
 
-        .slider-list__control-buttons {
+        .slider-control {
             position: absolute;
             top: 150px;
             text-decoration: none;
@@ -65,7 +65,7 @@
             font-size: 36px;
         }
 
-        .slider-list__control-buttons--right {
+        .slider-control--right {
             right: 0;
         }
     </style>
@@ -86,17 +86,17 @@
             <img src="https://p4.ssl.qhimg.com/t01331ac159b58f5478.jpg"/>
         </li>
     </ul>
-    <div class="slider-list__indicates">
-        <span class="slider-list__indicates-item--selected"></span>
-        <span class="slider-list__indicates-item"></span>
-        <span class="slider-list__indicates-item"></span>
-        <span class="slider-list__indicates-item"></span>
+    <div class="slider-indicates">
+        <span class="slider-indicates__item--selected"></span>
+        <span class="slider-indicates__item"></span>
+        <span class="slider-indicates__item"></span>
+        <span class="slider-indicates__item"></span>
     </div>
 
-    <a href="#" class="slider-list__control-buttons slider-list__control-buttons--left">
+    <a href="#" class="slider-control slider-control--left">
         <
     </a>
-    <a href="#" class="slider-list__control-buttons slider-list__control-buttons--right">
+    <a href="#" class="slider-control slider-control--right">
         >
     </a>
 </div>
@@ -106,15 +106,15 @@
     class Slider {
         constructor(id, cycle = 2000) {
             const container = document.getElementById(id);
-            const leftBtn = container.querySelector('.slider-list__control-buttons--left')
-            const rightBtn = container.querySelector('.slider-list__control-buttons--right')
-            const indicatesContainer = document.querySelector('.slider-list__indicates')
-            this.indicates = container.querySelectorAll('.slider-list__indicates-item, .slider-list__indicates-item--selected');
+            const leftBtn = container.querySelector('.slider-control--left')
+            const rightBtn = container.querySelector('.slider-control--right')
+            const indicatesContainer = document.querySelector('.slider-indicates')
+            this.indicates = container.querySelectorAll('.slider-indicates__item, .slider-indicates__item--selected');
             this.sliderItems = container.querySelectorAll('.slider-list__item, .slider-list__item--selected')
-            console.log(this.sliderItems.length)
             this.currentIndex = 0
             this.cycle = cycle
-            this.autoSlider = null;
+            this.autoSlider = null
+            this.slideHandlers=[]
 
             //事件初始化
             leftBtn.addEventListener('click', this.doSlide((e) => this.slideToLeft()))
@@ -159,9 +159,12 @@
         slideTo(idx) {
             this.sliderItems[this.currentIndex].className = 'slider-list__item'
             this.sliderItems[idx].className = 'slider-list__item--selected'
-            this.indicates[this.currentIndex].className = 'slider-list__indicates-item'
-            this.indicates[idx].className = 'slider-list__indicates-item--selected'
+            this.indicates[this.currentIndex].className = 'slider-indicates__item'
+            this.indicates[idx].className = 'slider-indicates__item--selected'
             this.currentIndex = idx
+            this.slideHandlers.forEach(handle=>{
+                handle(idx+1)
+            })
         }
 
         start() {
@@ -171,11 +174,18 @@
         stop() {
             clearInterval(this.autoSlider)
         }
+
+        addSlideListener(handle){
+            this.slideHandlers.push(handle)
+        }
     }
 
     const slider = new Slider('my-slider');
     slider.start();
 
+    slider.addSlideListener(function (idx) {
+        console.log(idx)
+    })
 </script>
 </body>
 </html>
