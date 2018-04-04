@@ -53,6 +53,9 @@
     <section>
         <div class="circle">4</div>
     </section>
+    <section>
+        <div class="circle">5</div>
+    </section>
 </div>
 
 <script>
@@ -71,6 +74,7 @@
             this.noScroll = true
             this.scrollDown = true
             this.windowHeight = document.documentElement.clientHeight
+            this.percent = 100 / this.sections.length
             this.checkOptions().bindEvents()
         }
 
@@ -107,7 +111,7 @@
         startScroll() {
             return new Promise((resolve) => {
                 this.noScroll = false
-                this.options.container.style.transform = `translate3d(0,-${25 * (this.targetIndex)}%,0)`
+                this.options.container.style.transform = `translate3d(0,-${this.percent * (this.targetIndex)}%,0)`
                 const that = this
                 this.options.container.addEventListener('transitionend', function callback() {
                     this.removeEventListener('transitionend', callback)
