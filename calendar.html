@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>Calendar</title>
+<style>
+    body {
+        margin: 0;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    h1 {
+        margin: 0;
+    }
+
+    .page {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .page > nav:first-child {
+        text-align: right;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1em;
+    }
+
+    .calendar {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .calendar > ol {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .calendar > ol.weekdays {
+        display: flex;
+        text-align: right;
+    }
+
+    .calendar > ol.weekdays > li {
+        width: 14.2857%;
+        padding: .5em 1em;
+    }
+
+    .calendar > ol.days {
+        display: flex;
+        flex-wrap: wrap;
+        flex-grow: 1;
+    }
+
+    .calendar > ol.days > li {
+        width: 14.2857%;
+        border-right: 1px solid #C7C7CC;
+        border-top: 1px solid #C7C7CC;
+        position: relative;
+    }
+
+    .calendar > ol.days > li:nth-child(7n) {
+        border-right: none;
+    }
+
+    .calendar > ol.days > li > .dayLabel {
+        position: absolute;
+        right: 1em;
+        top: .8em;
+        white-space: nowrap;
+        text-align: right;
+    }
+
+    .calendar .today .day {
+        background: red;
+        width: 1.6em;
+        display: inline-block;
+        text-align: center;
+        height: 1.6em;
+        line-height: 1.6em;
+        border-radius: 50%;
+        color: white;
+    }
+
+    .calendar .weekdays .weekend {
+        color: #B8B8B8;
+    }
+
+    .calendar .days .weekend {
+        background: #F5F5F5;
+    }
+
+    .calendar .days .previousMonth,
+    .calendar .days .nextMonth {
+        color: #C3C3C3;
+    }
+</style>
+
+<div class="page">
+    <nav>
+        <h1 class="date"></h1>
+        <div class="controls">
+            <button id="previousMonth">&lt;</button>
+            <button id="today">今天</button>
+            <button id="nextMonth">&gt;</button>
+        </div>
+    </nav>
+    <div class="calendar"></div>
+</div>
+
+<script>
+    class Calendar {
+        constructor(options) {
+            this.options = options
+            this.today= new Date()
+            this.monthBegin = new Date(this.today.getFullYear(), this.today.getMonth(), 1)
+            this.checkOptions().initHtml()
+            //展示的日期数组当前位置
+            this.index=null
+             this.render()
+        }
+
+        checkOptions() {
+            if (!this.options.element) {
+                throw new Error('element is required')
+            }
+            return this
+        }
+
+        initHtml() {
+            this.options.output.textContent = `${this.monthBegin.getFullYear()}年${this.monthBegin.getMonth() + 1}月`
+            let html= ''
+            const array = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+            for (let i = 0; i < array.length; i++) {
+                html += `<li>${array[i]}</li>`
+            }
+            this.options.element.innerHTML = `<ol class="weekdays">${html}</ol><ol class="days"></ol>`
+        }
+
+        render() {
+            let html = ''
+            this.index =1
+            html+=this._generatePrevMonth()+this._generateCurMonth() + this._generateNextMonth()
+            this.options.element.querySelector('.days').innerHTML = html
+            this.options.output.textContent = `${this.monthBegin.getFullYear()}年${this.monthBegin.getMonth() + 1}月`
+        }
+
+        _generatePrevMonth(){
+            let monthBeginWeekday = this.monthBegin.getDay()>0?this.monthBegin.getDay():7
+            let y = this.monthBegin.getFullYear(), m = this.monthBegin.getMonth();
+            let prevMonthEnd = new Date(y, m, 0)
+            let prevMonthEndDate = prevMonthEnd.getDate()
+            let html=''
+            for (let i = (monthBeginWeekday-2); i >= 0; i--) {
+                const weekendClassName = this.index===6?'weekend':''
+                html += `
+                                <li class="previousMonth ${weekendClassName}">
+                                     <span class="dayLabel">
+                                     <span class="day">${prevMonthEndDate-i}</span><span class="unit">日</span>
+                                     </span>
+                            </li>`
+                this.index++
+            }
+            return html
+        }
+
+        _generateCurMonth(){
+            let y = this.monthBegin.getFullYear(), m = this.monthBegin.getMonth();
+            let monthEnd = new Date(y, m + 1, 0);
+            let html=''
+            for (let i = 1; i <= monthEnd.getDate(); i++) {
+                const weekendClassName = (this.index+1)%7===0 || this.index %7 ===0?'weekend':''
+                const todayClassName = this.today.getDate()===i&&y===this.today.getFullYear()&&m===this.today.getMonth()?'today':''
+                html += `
+                            <li class="currentMonth ${weekendClassName} ${todayClassName}">
+                                     <span class="dayLabel">
+                                     <span class="day">${i}</span><span class="unit">日</span>
+                                     </span>
+                            </li>`
+                this.index++
+            }
+            return html
+        }
+
+        _generateNextMonth(){
+            let y = this.monthBegin.getFullYear(), m = this.monthBegin.getMonth();
+            let monthEnd = new Date(y, m + 1, 0);
+            const monthEndWeekday = monthEnd.getDay()>0?monthEnd.getDay():7
+            let html=''
+            for(let i =1; i <=(7- monthEndWeekday); i++){
+                const weekendClassName = (this.index+1)%7===0 || this.index %7 ===0?'weekend':''
+                html += `
+                            <li class="nextMonth ${weekendClassName}">
+                                     <span class="dayLabel">
+                                     <span class="day">${i}</span><span class="unit">日</span>
+                                     </span>
+                            </li>`
+                this.index++
+            }
+            return html
+        }
+
+
+        nextMonth() {
+            this.monthBegin = new Date(this.monthBegin.getFullYear(), this.monthBegin.getMonth()+1,1)
+            this.render()
+        }
+
+        previousMonth(){
+            this.monthBegin = new Date(this.monthBegin.getFullYear(), this.monthBegin.getMonth()-1,1)
+            this.render()
+        }
+
+        resetMonth(){
+            this.monthBegin = new Date(this.today.getFullYear(), this.today.getMonth(),1)
+            this.render()
+        }
+    }
+</script>
+<script>
+    let calendar = new Calendar({
+        element: document.querySelector('.calendar'),
+        output: document.querySelector('.date'),
+    })
+    previousMonth.onclick = function(){
+        calendar.previousMonth()
+    }
+    nextMonth.onclick = function(){
+        calendar.nextMonth()
+    }
+    today.onclick = function(){
+        calendar.resetMonth()
+    }
+</script>
+
+</html>
